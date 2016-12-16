@@ -32,10 +32,20 @@ function httpGetJSON(theUrl, callback)
 
 function parseJSON(response){
 	var jsonResponse = JSON.parse(response);
-	alert(jsonResponse);
+    var suggestion_div = document.getElementById("suggestions");
+        while (suggestion_div.firstChild) {
+        suggestion_div.removeChild(suggestion_div.firstChild);
+    }
+
+    for(i = 0 ; i < jsonResponse.length; i++)
+    {
+        var option = document.createElement('option');
+        option.innerHTML = jsonResponse[i].company;
+        option.class = "options";
+        suggestion_div.appendChild(option);   
+    }
 }
 
-httpGetJSON("http://chstocksearch.herokuapp.com/api/apple", parseJSON);
 
 function printJSON(response){
 	config = {};
@@ -50,26 +60,15 @@ var countries = [
 ];
 
 
-var options = {
 
-  lookup: countries,
- 
-  list: {	
-    match: {
-      enabled: true
-    }
-  },
+// $('#tickerInput').autocomplete({
+//     source: countries,
+//     onSelect: function (suggestion) {
+//         alert('You selected: ' + suggestion.value + ', ' + suggestion.data);
+//     }
+// });
 
 
-  theme: "square",
-	onSelect: function (suggestion) {
-	        alert('You selected: ' + suggestion.value + ', ' + suggestion.data);
-    }
-};
-$('#tickerInput').autocomplete().disable();
-$('#tickerInput').autocomplete('setOptions', options);
-	
-	
 
 function setupURL(stockSyms){
 	url = "http://finance.yahoo.com/d/quotes.csv?s="
@@ -86,12 +85,24 @@ function setupURL(stockSyms){
 	return url;
 }
 
-document.getElementById("tickerInput").addEventListener("keypress", function(event){
-	if(event.keyCode == 13){
-	syms.push(document.getElementById("tickerInput").value);
-	document.getElementById("tickerInput").value='';
-}
+document.getElementById("tickerInput").addEventListener("keyup", function(event){
+    if(event.keyCode == 13){
+        syms.push(document.getElementById("tickerInput").value);
+        document.getElementById("tickerInput").value='';
+    }
+    else{
+        var entered = document.getElementById("tickerInput");
+        var url = "http://chstocksearch.herokuapp.com/api/" + document.getElementById("tickerInput").value;
+        httpGetJSON(url, parseJSON);
+    }
+
+
 });
+
+
+
+
+
 
 
 document.getElementById("submitButton").addEventListener("click", function(){
