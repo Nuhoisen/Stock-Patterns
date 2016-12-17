@@ -1,0 +1,6 @@
+run chrome with:
+		chrome.exe --user-data-dir="C:/Chrome dev session" --disable-web-security
+
+
+Browserify Command:
+		Browserify src/YahooApiCalls.js -o src/bundle.js

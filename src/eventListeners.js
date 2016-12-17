@@ -24,11 +24,6 @@ document.getElementById("submitButton").addEventListener("click", function(){
 
 
     
-
-
-    for(i = 0; i <syms.length; i++){
-        retrieveQuotes(syms[i], '2012-12-31', )
-    }
 	retrieveQuotes(syms[0]);
 	syms = [];
 	document.getElementById("tickerInput").value='';

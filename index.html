@@ -3,23 +3,67 @@
 <head>
 	<meta charset="UTF-8">
 	<title>stock quotes</title>
+	
+	<!-- papaParse -->
 	<script src="./libs/papaparse.min.js"></script>
-	 <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js">
   
+	<!-- jquery -->
+	<link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js">
     <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
   	<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
- 
 	<script src="./libs/jquery-csv-master/src/jquery.csv.min.js"></script>
+ 
+	<script src="src/bundle.js"></script>
+	
+	<!-- teckanjs -->
+	<script src="http://d3js.org/d3.v4.min.js"></script>
+	<script src="http://techanjs.org/techan.min.js"></script>
+
+	<style>
+
+    body {
+        font: 10px sans-serif;
+    }
+
+    text {
+        fill: #000;
+    }
+
+    button {
+        position: absolute;
+        right: 20px;
+        top: 440px;
+        
+    }
+
+    path.candle {
+        stroke: #000000;
+    }
+
+    path.candle.body {
+        stroke-width: 0;
+    }
+
+    path.candle.up {
+        fill: #00AA00;
+        stroke: #00AA00;
+    }
+
+    path.candle.down {
+        fill: #FF0000;
+        stroke: #FF0000;
+    }
+
+</style>
 
 </head>
 <body>
-
-
 	<input id="tickerInput" type="text">
 	<select id="suggestions"></select>
 	<button id="submitButton">Finished</button>
 
-	<script src="src/test.js"></script>
+	<script src="src/requests.js"></script>	
+	<script src="src/candleStick.js"></script>
 	<script src="src/eventListeners.js"></script>
 </body>
 </html>

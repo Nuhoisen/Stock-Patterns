@@ -84,21 +84,7 @@ function readCSV(csvURL){
             alert(results);
         }
     });
-
-    // var rawFile = new XMLHttpRequest();
-   
-
-    // rawFile.onreadystatechange = function(){
-    //     if(rawFile.readyState==4 && rawFile.status == 200)
-    //     {
-    //         var text = rawFile.responseText;
-    //         alert(text);   
-    //     }    
-    // };
-    // rawFile.open("GET", csvURL, true);
-   
-    // rawFile.send(null);
 }
 
 
-readCSV("http://localhost:8000/src/dailyScript/paypal.csv");
+//readCSV("http://localhost:8000/src/dailyScript/paypal.csv");

@@ -1,9 +1,7 @@
-var yahooFiance = require('yahoo-finance');
-/*
-run 
-	"browserify yahooApiCalls.js -o bundle.js"
-*/
-function retrieveQuotes(symb, startDate, endDate){
+var yahooFinance = require('yahoo-finance');
+
+
+function retrieveQuotes(symb){
 	var todaysDate = CurrentDate();
 	yahooFinance.historical({
 		symbol: symb,
@@ -14,11 +12,9 @@ function retrieveQuotes(symb, startDate, endDate){
 		function(err, result){
 			if(err)
 				alert(err);
-			else{
+			else
 				patternAnalysis(result);
-			}
 		}
-
-	});
+	);
 }
 
