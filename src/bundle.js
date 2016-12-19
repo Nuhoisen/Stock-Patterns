@@ -93550,7 +93550,7 @@ var yahooFinance = require('yahoo-finance');
      symbol: symb,
      from: '2010-01-01',
      to:  todaysDate,
-     period: 'w'
+     period: 'd'
      },
      function(err, result){
        if(err)

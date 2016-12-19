@@ -31,41 +31,46 @@ function patternAnalysis(data){
 
 
 
-	    var accessor = candlestick.accessor();
-        //find way to parse date
-        data = data.slice(0, 200).map(function(d) { 
-            return {
-                date: +d.date,
-                open: +d.open,
-                high: +d.high,
-                low: +d.low,
-                close: +d.close,
-                volume: +d.volume
-            };
-        }).sort(function(a, b) { 
-            return d3.ascending(accessor.d(a), accessor.d(b)); 
-        });
+    var accessor = candlestick.accessor();
+    //find way to parse date
+    data = data.slice(data.length-200).map(function(d) { 
+        d.date = String(d.date);
+        d.date = d.date.split(" ");
+        d.date[3] = d.date[3].substr(2,3);
+        d.date = d.date[2] + "-" + d.date[1] + "-" + d.date[3];
+        d.date = parseDate(d.date);
+        return {
+            date: +d.date,
+            open: +d.open,
+            high: +d.high,
+            low: +d.low,
+            close: +d.close,
+            volume: +d.volume
+        };
+    }).sort(function(a, b) { 
+        return d3.ascending(accessor.d(a), accessor.d(b)); 
+    });
 
-        svg.append("g")
-                .attr("class", "candlestick");
+    svg.append("g")
+            .attr("class", "candlestick");
 
-        svg.append("g")
-                .attr("class", "x axis")
-                .attr("transform", "translate(0," + height + ")");
+    svg.append("g")
+            .attr("class", "x axis")
+            .attr("transform", "translate(0," + height + ")");
 
-        svg.append("g")
-                .attr("class", "y axis")
-                .append("text")
-                .attr("transform", "rotate(-90)")
-                .attr("y", 6)
-                .attr("dy", ".71em")
-                .style("text-anchor", "end")
-                .text("Price ($)");
+    svg.append("g")
+            .attr("class", "y axis")
+            .append("text")
+            .attr("transform", "rotate(-90)")
+            .attr("y", 6)
+            .attr("dy", ".71em")
+            .style("text-anchor", "end")
+            .text("Price ($)");
 
-        // Data to display initially
-        draw(data.slice(0, data.length-20));
-        // Only want this button to be active if the data has loaded
-        d3.select("button").on("click", function() { draw(data); }).style("display", "inline");
+    // Data to display initially
+    draw(data.slice(data.length-200));
+    // Only want this button to be active if the data has loaded
+    d3.select("button").on("click", function() { draw(data); }).style("display", "inline");
 
     function draw(data) {
         x.domain(data.map(candlestick.accessor().d));
