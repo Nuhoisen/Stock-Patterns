@@ -1,23 +1,13 @@
-    var count = 0;
+    var axesCount = 40;
     var width = 900;
     var height = 500;
-    
-    String.prototype.format = function() {
-        var formatted = this;
-        for (var i = 0; i < arguments.length; i++) {
-          var regexp = new RegExp('\\{'+i+'\\}', 'gi');
-          formatted = formatted.replace(regexp, arguments[i]);
-        }
-        return formatted;
-    };
-
 
     var dateFormat = d3.timeParse("%d-%b-%y");
 
     var end = new Date();
     var start = new Date(end.getTime() - 1000 * 60 * 60 * 24 * 60);
 
-   
+    
 
 
     function min(a, b){ return a < b ? a : b ; }
@@ -25,7 +15,8 @@
     function max(a, b){ return a > b ? a : b; }    
 
     function buildChart(data){        
-       
+      var idCount = 0;
+      
       data = data.map(function(d){
         d.date = String(d.date);
         d.date = d.date.split(" ");
@@ -58,7 +49,7 @@
     	  .range([margin,width-margin]);
 
             chart.selectAll("line.x")
-             .data(x.ticks(10))
+             .data(x.ticks(axesCount))
              .enter().append("svg:line")
              .attr("class", "x")
              .attr("x1", x)
@@ -78,7 +69,7 @@
              .attr("stroke", "#ccc");
 
             chart.selectAll("text.xrule")
-             .data(x.ticks(10))
+             .data(x.ticks(axesCount))
              .enter().append("svg:text")
              .attr("class", "xrule")
              .attr("x", x)
@@ -98,36 +89,113 @@
             .attr("text-anchor", "middle")
             .text(String);
 
+    var div = d3.select("body").append("div")
+      .attr("class", "tooltip")
+      .style("opacity", 0);
+
+
     chart.selectAll("rect")
       .data(data)
       .enter().append("svg:rect")
+      .attr("id", function(d){
+          return ((idCount++).toString());
+      })
       .attr("x", function(d) { return x(dateFormat(d.date).getTime()); })
-            .attr("y", function(d) {return y(max(d.open, d.close));})		  
+      .attr("y", function(d) {return y(max(d.open, d.close));})		  
       .attr("height", function(d) { return y(min(d.open, d.close))-y(max(d.open, d.close));})
       .attr("width", function(d) { return 0.5 * (width - 2*margin)/data.length; })
-            .attr("fill",function(d) { return d.open > d.close ? "red" : "green" ;});
+      .attr("fill",function(d) { return d.open > d.close ? "red" : "green" ;})
+      .on("mouseover", function(d){
+        d3.select(this)
+          .style("opacity", 0.5);
+        var that = d3.select(this);
+        d3.select(("#stem"+ that[0][0].id))
+          .style("opacity", 0.2);
+        div.transition()
+          .duration(200)
+          .style("opacity", 0.9);
+        div.html("date:" + d.date.toString() + "<br/>"
+                + "high:" + d.high.toString() + "<br/>"
+                + "low:" + d.low.toString()+ "<br/>"
+                + "volume:" + d.volume.toString())
+          .style("left", (d3.event.pageX)+ "px")
+          .style("top", (d3.event.pageY) + "px");
+      })
+      .on("mouseout", function(){
+        var that = d3.select(this);
+       
+        d3.select(("#stem"+ that[0][0].id))
+          .style("opacity", 1);
+        d3.select(this)
+          .style("opacity", 1);
+        
+        div.style("opacity", 0);
+      });
+      
+      idCount = 0;
 
-          chart.selectAll("line.stem")
-            .data(data)
-            .enter().append("svg:line")
-            .attr("class", "stem")
-            .attr("x1", function(d) { 
-              return x(dateFormat(d.date).getTime()) + 0.25 * (width - 2 * margin)/ data.length;
-            })
-            .attr("x2", function(d) { 
-              return x(dateFormat(d.date).getTime()) + 0.25 * (width - 2 * margin)/ data.length;
-            })
-            .attr("y1", function(d) { 
-              return y(d.high);
-            })
-            .attr("y2", function(d) {
-             return y(d.low); 
-            })
-            .attr("stroke", function(d){ 
-              return d.open > d.close ? "red" : "green"; 
-          })
+      chart.selectAll("line.stem")
+        .data(data)
+        .enter().append("svg:line")
+        .attr("id", function(d){
+          return ("stem" + ((idCount++).toString()));
+        })
+        .attr("class", "stem")
+        .attr("x1", function(d) { 
+          return x(dateFormat(d.date).getTime()) + 0.25 * (width - 2 * margin)/ data.length;
+        })
+        .attr("x2", function(d) { 
+          return x(dateFormat(d.date).getTime()) + 0.25 * (width - 2 * margin)/ data.length;
+        })
+        .attr("y1", function(d) { 
+          return y(d.high);
+        })
+        .attr("y2", function(d) {
+         return y(d.low); 
+        })
+        .attr("stroke", function(d){ 
+          return d.open > d.close ? "red" : "green"; 
+        })
+        .on("mouseover", function(d){
+          d3.select(this)
+            .style("opacity", 0.5);
+          var that = d3.select(this);
 
-        }		  
+          d3.select("#" + that[0][0].id.replace("stem", ""))
+            .style("opacity", 0.5);
+
+          div.transition()
+            .duration(200)
+            .style("opacity", 0.9);
+          div.html("date:" + d.date.toString() + "<br/>"
+                  + "high:" + d.high.toString() + "<br/>"
+                  + "low:" + d.low.toString()+ "<br/>"
+                  + "volume:" + d.volume.toString())
+            .style("left", (d3.event.pageX)+ "px")
+            .style("top", (d3.event.pageY) + "px");
+        })
+        .on("mouseout", function(){
+          d3.select(this)
+            .style("opacity", 1);
+
+          var that = d3.select(this);
+          d3.select("#" + that[0][0].id.replace("stem", ""))
+            .style("opacity", 0.5);
+
+          div.style("opacity", 0);
+        });
+
+      idCount = 0;
+    }		  
+
+  String.prototype.format = function() {
+        var formatted = this;
+        for (var i = 0; i < arguments.length; i++) {
+          var regexp = new RegExp('\\{'+i+'\\}', 'gi');
+          formatted = formatted.replace(regexp, arguments[i]);
+        }
+        return formatted;
+    }
 
   function appendToData(x){
   	if(data.length > 0){
