@@ -1,4 +1,4 @@
-function patternAnalysis(data){
+function buildChart(data){
 	
 
     var margin = {top: 20, right: 20, bottom: 30, left: 50},
@@ -73,12 +73,15 @@ function patternAnalysis(data){
     d3.select("button").on("click", function() { draw(data); }).style("display", "inline");
 
     function draw(data) {
-        x.domain(data.map(candlestick.accessor().d));
+        x.domain(data.map(
+            candlestick.accessor().d
+            ));
         y.domain(techan.scale.plot.ohlc(data, candlestick.accessor()).domain());
 
         svg.selectAll("g.candlestick").datum(data).call(candlestick);
-        svg.selectAll("g.x.axis").call(xAxis);
         svg.selectAll("g.y.axis").call(yAxis);
+        svg.selectAll("g.x.axis").call(xAxis);
+        
     }
 }
 

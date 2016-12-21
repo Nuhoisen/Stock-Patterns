@@ -93548,15 +93548,15 @@ var yahooFinance = require('yahoo-finance');
    var todaysDate = CurrentDate();
     yahooFinance.historical({
      symbol: symb,
-     from: '2010-01-01',
+     from: '2016-01-01',
      to:  todaysDate,
-     period: 'd'
+     period: 'w'
      },
      function(err, result){
        if(err)
          alert(err);
        else
-         patternAnalysis(result);
+         buildChart(result);
      }
     );
 
