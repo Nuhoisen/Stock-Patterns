@@ -36,10 +36,19 @@
 
 </head>
 <body>
-	<input id="tickerInput" type="text">
-	<select id="suggestions"></select>
-	<button id="submitButton">Finished</button>
+    <input id="tickerInput" type="text">
+    <select id="suggestions"></select>
+    <select id="daysBack">
+        <option value="5 days">5 Days</option>
+        <option value="20 days">20 Days</option>
+        <option value="50 days">50 Days</option>
+        <option value="200 days">200 Days</option>
+        <option value="1 Year">1 Year</option>
+        <option value="5 Year">5 Years</option>
+    </select>
+    <button id="submitButton">Finished</button>
     <div id = "graphLayout"></div>
+    <canvas id="canvas"></canvas>
 	<script src="src/requests.js"></script>	
 	<script src="src/candleStick2.js"></script>
 	<script src="src/eventListeners.js"></script>
