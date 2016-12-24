@@ -2,10 +2,11 @@
     var width = 900;
     var height = 500;
 
-    var dateFormat = d3.timeParse("%d-%b-%y");
-
-    var end = new Date();
-    var start = new Date(end.getTime() - 1000 * 60 * 60 * 24 * 60);
+    var monthFormat = d3.timeFormat("%m/%e");
+    var dateFormat = d3.timeFormat("%b-%e-%Y");
+    
+    // var end = new Date();
+    // var start = new Date(end.getTime() - 1000 * 60 * 60 * 24 * 60);
 
     
 
@@ -16,22 +17,23 @@
 
     function buildChart(data){        
       var idCount = 0;
-      
-      data = data.map(function(d){
-        d.date = String(d.date);
-        d.date = d.date.split(" ");
-        d.date[3] = d.date[3].substr(2,3);
-        d.date = d.date[2] + "-" + d.date[1] + "-" + d.date[3];
-        //d.date = parseDate(d.date);
-         return {
-            date: d.date,
-            open: +d.open,
-            high: +d.high,
-            low: +d.low,
-            close: +d.close,
-            volume: +d.volume
-        };
-      });
+      var increment =  data.length/axesCount;
+      var tracker = 3;
+      // data = data.map(function(d){
+      //   d.date = String(d.date);
+      //   d.date = d.date.split(" ");
+      //   d.date[3] = d.date[3].substr(2,3);
+      //   d.date = d.date[2] + "-" + d.date[1] + "-" + d.date[3];
+      //   d.date = dateFormat(d.date);
+      //    return {
+      //       date: d.date,
+      //       open: +d.open,
+      //       high: +d.high,
+      //       low: +d.low,
+      //       close: +d.close,
+      //       volume: +d.volume
+      //   };
+      // });
 
       var margin = 50;		   
     	  
@@ -44,8 +46,10 @@
     	  .domain([d3.min(data.map(function(x) {return x["low"];})), d3.max(data.map(function(x){return x["high"];}))])
     	  .range([height-margin, margin]);
       var x = d3.scale.linear()
-    	  .domain([d3.min(data.map(function(d){return dateFormat(d.date).getTime();})),
-    	  	   d3.max(data.map(function(d){return dateFormat(d.date).getTime();}))])
+    	  .domain([d3.min(data.map(function(d){
+          return d.date;
+        })),
+    	  	   d3.max(data.map(function(d){return d.date;}))])
     	  .range([margin,width-margin]);
 
             chart.selectAll("line.x")
@@ -76,7 +80,11 @@
              .attr("y", height - margin)
              .attr("dy", 20)
              .attr("text-anchor", "middle")
-             .text(function(d){ var date = new Date(d * 1000);  return (date.getMonth() + 1)+"/"+date.getDate(); });
+             .text(function(d){
+              var retMonth = monthFormat(data[tracker].date); 
+                  tracker = Math.round(tracker + increment);
+                  return retMonth;
+             });
 
            chart.selectAll("text.yrule")
             .data(y.ticks(10))
@@ -100,7 +108,7 @@
       .attr("id", function(d){
           return ((idCount++).toString());
       })
-      .attr("x", function(d) { return x(dateFormat(d.date).getTime()); })
+      .attr("x", function(d) { return x(d.date); })
       .attr("y", function(d) {return y(max(d.open, d.close));})		  
       .attr("height", function(d) { return y(min(d.open, d.close))-y(max(d.open, d.close));})
       .attr("width", function(d) { return 0.5 * (width - 2*margin)/data.length; })
@@ -114,7 +122,7 @@
         div.transition()
           .duration(200)
           .style("opacity", 0.9);
-        div.html("date:" + d.date.toString() + "<br/>"
+        div.html("date:" + dateFormat(d.date) + "<br/>"
                 + "high:" + d.high.toString() + "<br/>"
                 + "low:" + d.low.toString()+ "<br/>"
                 + "volume:" + d.volume.toString())
@@ -142,10 +150,10 @@
         })
         .attr("class", "stem")
         .attr("x1", function(d) { 
-          return x(dateFormat(d.date).getTime()) + 0.25 * (width - 2 * margin)/ data.length;
+          return x(d.date) + 0.25 * (width - 2 * margin)/ data.length;
         })
         .attr("x2", function(d) { 
-          return x(dateFormat(d.date).getTime()) + 0.25 * (width - 2 * margin)/ data.length;
+          return x(d.date) + 0.25 * (width - 2 * margin)/ data.length;
         })
         .attr("y1", function(d) { 
           return y(d.high);
@@ -161,13 +169,13 @@
             .style("opacity", 0.5);
           var that = d3.select(this);
 
-          d3.select("#" + that[0][0].id.replace("stem", ""))
+          d3.select("#" + this.id.replace("stem", ""))
             .style("opacity", 0.5);
 
           div.transition()
             .duration(200)
             .style("opacity", 0.9);
-          div.html("date:" + d.date.toString() + "<br/>"
+          div.html("date:" + dateFormat(d.date) + "<br/>"
                   + "high:" + d.high.toString() + "<br/>"
                   + "low:" + d.low.toString()+ "<br/>"
                   + "volume:" + d.volume.toString())
@@ -179,8 +187,8 @@
             .style("opacity", 1);
 
           var that = d3.select(this);
-          d3.select("#" + that[0][0].id.replace("stem", ""))
-            .style("opacity", 0.5);
+          d3.select("#" + this.id.replace("stem", ""))
+            .style("opacity", 1);
 
           div.style("opacity", 0);
         });
@@ -209,16 +217,16 @@
           buildChart(data);		  
       }
 
-      function buildQuery(){
-        var symbol = window.location.hash;
-        if(symbol === ""){
-           symbol = "AMZN";
-        }
-        symbol = symbol.replace("#", "");		  
-        var base = "select * from yahoo.finance.historicaldata where symbol = \"{0}\" and startDate = \"{1}\" and endDate = \"{2}\"";
-        var getDateString = d3.time.format("%Y-%m-%d");
-        var query = base.format(symbol, getDateString(start), getDateString(end));
-        query = encodeURIComponent(query);		    
-        var url = "http://query.yahooapis.com/v1/public/yql?q={0}&format=json&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys&callback=appendToData".format(query);
-        return url;
-      }
+      // function buildQuery(){
+      //   var symbol = window.location.hash;
+      //   if(symbol === ""){
+      //      symbol = "AMZN";
+      //   }
+      //   symbol = symbol.replace("#", "");		  
+      //   var base = "select * from yahoo.finance.historicaldata where symbol = \"{0}\" and startDate = \"{1}\" and endDate = \"{2}\"";
+      //   var getDateString = d3.time.format("%Y-%m-%d");
+      //   var query = base.format(symbol, getDateString(start), getDateString(end));
+      //   query = encodeURIComponent(query);		    
+      //   var url = "http://query.yahooapis.com/v1/public/yql?q={0}&format=json&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys&callback=appendToData".format(query);
+      //   return url;
+      // }

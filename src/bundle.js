@@ -93548,7 +93548,7 @@ var yahooFinance = require('yahoo-finance');
    var todaysDate = CurrentDate();
     yahooFinance.historical({
      symbol: symb,
-     from: '2016-01-01',
+     from: '2015-01-01',
      to:  todaysDate,
      period: 'w'
      },
