@@ -14,7 +14,7 @@ document.getElementById("tickerInput").addEventListener("keyup", function(event)
 
 
 document.getElementById("suggestions").addEventListener("select", function(event){
-        var options = document.getElementById("suggestions").options;
+    var options = document.getElementById("suggestions").options;
 });
 
 
@@ -28,7 +28,7 @@ document.getElementById("submitButton").addEventListener("click", function(){
     var today = new Date();
     var dd = today.getDate();
     var mm = today.getMonth()+ 1;
-    var yyyy= today.getFullYear();
+    var yyyy=today.getFullYear();
 
     var margin;
 
@@ -97,6 +97,8 @@ document.getElementById("submitButton").addEventListener("click", function(){
             margin = 'm';
             break;
     }
+        if((daysInMonth(mm, yyyy)) == 28 && (dd == 29))
+            dd = 28;
 
 
     try{
@@ -107,7 +109,7 @@ document.getElementById("submitButton").addEventListener("click", function(){
         retrieveQuotes(sugg.options[sugg.selectedIndex].value);
     }    
 	syms = [];
-	document.getElementById("tickerInput").value='';
+	//document.getElementById("tickerInput").value='';
 });
 
 document.getElementById("suggestions").addEventListener("change", function(){

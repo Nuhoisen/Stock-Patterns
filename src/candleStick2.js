@@ -1,4 +1,4 @@
-    var axesCount = 40;
+    var axesCount = 30;
     var width = 900;
     var height = 500;
 
@@ -57,6 +57,7 @@
     function max(a, b){ return a > b ? a : b; }    
 
     function buildChart(data){        
+      axesCount = data.length < 30 ? data.length : 30;
       var idCount = 0;
       var increment =  data.length/axesCount;
       var tracker = 3;
@@ -76,13 +77,10 @@
     	  .domain([d3.min(data.map(function(x) {return x["low"];})), d3.max(data.map(function(x){return x["high"];}))])
     	  .range([height-margin, margin]);
       var x = d3.scale.linear()
-    	  .domain([d3.min(data.map(function(d){
-          return d.date;
-        })),
-    	  	   d3.max(data.map(function(d){return d.date;}))])
-    	  .range([margin,width-margin]);
-
-          chart.selectAll("line.x")
+    	  .domain([data[0].date, data[data.length-1].date])
+        .range([margin,width-margin]);
+        
+        chart.selectAll("line.x")
            .data(x.ticks(axesCount))
            .enter().append("svg:line")
            .attr("class", "x")
@@ -111,13 +109,11 @@
            .attr("dy", 20)
            .attr("text-anchor", "middle")
            .text(function(d){
-            return "8/1";
-            // var retMonth = monthFormat(data[tracker].date); 
-            //     tracker = Math.round(tracker + increment);
-            //     return retMonth;
+              var dayte = new Date(d);
+              return dayte.getMonth() + "/" + dayte.getDate();
            });
 
-         chart.selectAll("text.yrule")
+          chart.selectAll("text.yrule")
           .data(y.ticks(10))
           .enter().append("svg:text")
           .attr("class", "yrule")
@@ -153,8 +149,10 @@
           .duration(200)
           .style("opacity", 0.9);
         div.html("date:" + dateFormat(d.date) + "<br/>"
-                + "high:" + d.high.toString() + "<br/>"
-                + "low:" + d.low.toString()+ "<br/>"
+                + "open:" + Math.round(d.open*100)/100 + "<br/>"
+                + "close:" + Math.round(d.close*100)/100 + "<br/>"
+                + "high:" + Math.round(d.high*100)/100 + "<br/>"
+                + "low:" + Math.round(d.low*100)/100 + "<br/>"
                 + "volume:" + d.volume.toString())
           .style("left", (d3.event.pageX)+ "px")
           .style("top", (d3.event.pageY) + "px");
@@ -204,6 +202,8 @@
             .duration(200)
             .style("opacity", 0.9);
           div.html("date:" + dateFormat(d.date) + "<br/>"
+                  + "open:" + d.open.toString() + "<br/>"
+                  + "close:" + d.close.toString() + "<br/>"
                   + "high:" + d.high.toString() + "<br/>"
                   + "low:" + d.low.toString()+ "<br/>"
                   + "volume:" + d.volume.toString())
