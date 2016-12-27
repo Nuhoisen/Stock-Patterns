@@ -12,44 +12,44 @@
       .attr("class", "tooltip")
       .style("opacity", 0);
 
-    var button = d3.select("body").append("button")
-      .attr("id", "downloadButton")
-      .style("display", "none")
-      .text("download chart")
-      .on("click", function(){
-          function triggerDownload (imgURI) {
-            var evt = new MouseEvent('click', {
-              view: window,
-              bubbles: false,
-              cancelable: true
-            });
+    // var button = d3.select("body").append("button")
+    //   .attr("id", "downloadButton")
+    //   .style("display", "none")
+    //   .text("download chart")
+    //   .on("click", function(){
+    //       function triggerDownload (imgURI) {
+    //         var evt = new MouseEvent('click', {
+    //           view: window,
+    //           bubbles: false,
+    //           cancelable: true
+    //         });
 
-            var a = document.createElement('a');
-            a.setAttribute('download', 'MY_COOL_IMAGE.png');
-            a.setAttribute('href', imgURI);
-            a.setAttribute('target', '_blank');
+    //         var a = document.createElement('a');
+    //         a.setAttribute('download', 'MY_COOL_IMAGE.png');
+    //         a.setAttribute('href', imgURI);
+    //         a.setAttribute('target', '_blank');
 
-            a.dispatchEvent(evt);
-          }
-          var svg = document.querySelector("svg"),
-          canvas = document.querySelector("canvas"),
-          context = canvas.getContext("2d"),
-          svgData = (new XMLSerializer()).serializeToString(svg),
-          DOMURL  = window.URL || window.webkitURL || window,
-          image = new Image(),
-          svgBlob = new Blob([svgData], {type: 'image/svg+xml;charset=utf-8'}),
-          url = DOMURL.createObjectURL(svgBlob);
+    //         a.dispatchEvent(evt);
+    //       }
+    //       var svg = document.querySelector("svg"),
+    //       canvas = document.querySelector("canvas"),
+    //       context = canvas.getContext("2d"),
+    //       svgData = (new XMLSerializer()).serializeToString(svg),
+    //       DOMURL  = window.URL || window.webkitURL || window,
+    //       image = new Image(),
+    //       svgBlob = new Blob([svgData], {type: 'image/svg+xml;charset=utf-8'}),
+    //       url = DOMURL.createObjectURL(svgBlob);
 
-          image.onload = function(){
-            context.drawImage(image, 0, 0);
-            DOMURL.revokeObjectURL(url);
+    //       image.onload = function(){
+    //         context.drawImage(image, 0, 0);
+    //         DOMURL.revokeObjectURL(url);
 
-            var imgURI = canvas.toDataURL('image/png').replace('image/png', 'image/octet-stream');
+    //         var imgURI = canvas.toDataURL('image/png').replace('image/png', 'image/octet-stream');
 
-            triggerDownload(imgURI);
-          }
-          image.src = url;
-      });
+    //         triggerDownload(imgURI);
+    //       }
+    //       image.src = url;
+    //   });
 
 
     function min(a, b){ return a < b ? a : b ; }
@@ -77,9 +77,14 @@
     	  .domain([d3.min(data.map(function(x) {return x["low"];})), d3.max(data.map(function(x){return x["high"];}))])
     	  .range([height-margin, margin]);
       var x = d3.scale.linear()
-    	  .domain([data[0].date, data[data.length-1].date])
+    	  .domain([data[0].date.getTime(), data[data.length-1].date.getTime()])
         .range([margin,width-margin]);
         
+      var volumeY = d3.scale.linear()
+        .domain([0, d3.max(data.map(function(de){return de["volume"];}))])
+        .range([height-margin, height-400]);
+
+
         chart.selectAll("line.x")
            .data(x.ticks(axesCount))
            .enter().append("svg:line")
@@ -128,7 +133,6 @@
 
     
 
-
     chart.selectAll("rect")
       .data(data)
       .enter().append("svg:rect")
@@ -167,6 +171,27 @@
         div.style("opacity", 0);
       });
       
+      chart.selectAll("line.stem")
+        .data(data)
+        .enter().append("svg:line")
+        .attr("class", "volumeStem")
+        .attr("x1", function(d){
+          return x(d.date)+ 0.25 * (width -2 * margin)/data.length;
+        })
+        .attr("x2", function(d){
+          return x(d.date)+ 0.25 * (width -2 * margin)/data.length;
+        })
+        .attr("y1", function(d){
+          return volumeY(d.volume);
+        })
+        .attr("y2", volumeY(0))
+        .attr("stroke", function(d){
+          return d.open > d.close ? "red" : "green";
+        });
+
+
+
+
       idCount = 0;
 
       chart.selectAll("line.stem")
