@@ -57,7 +57,7 @@
     function max(a, b){ return a > b ? a : b; }    
 
     function buildChart(data){        
-      axesCount = data.length < 30 ? data.length : 30;
+      axesCount = data.length < 25 ? data.length : 25;
       var idCount = 0;
       var increment =  data.length/axesCount;
       var tracker = 3;
@@ -67,7 +67,7 @@
       d3.selectAll("tooltip")
         .style("opacity", 0);
       var margin = 50;		   
-
+      var yBottomMargin = 100;
       var chart = d3.select("#graphLayout")
     	  .append("svg:svg")
     	  .attr("class", "chart")
@@ -75,14 +75,14 @@
     	  .attr("height", height);
       var y = d3.scale.linear()
     	  .domain([d3.min(data.map(function(x) {return x["low"];})), d3.max(data.map(function(x){return x["high"];}))])
-    	  .range([height-margin, margin]);
+    	  .range([height-yBottomMargin, margin]);
       var x = d3.scale.linear()
     	  .domain([data[0].date.getTime(), data[data.length-1].date.getTime()])
-        .range([margin,width-margin]);
+        .range([margin, width-margin]);
         
       var volumeY = d3.scale.linear()
-        .domain([0, d3.max(data.map(function(de){return de["volume"];}))])
-        .range([height-margin, height-400]);
+        .domain([500, d3.max(data.map(function(de){return de["volume"];}))])
+        .range([height-margin, height-yBottomMargin]);
 
 
         chart.selectAll("line.x")
@@ -92,7 +92,7 @@
            .attr("x1", x)
            .attr("x2", x)
            .attr("y1", margin)
-           .attr("y2", height - margin)
+           .attr("y2", height - yBottomMargin)
            .attr("stroke", "#ccc");
 
           chart.selectAll("line.y")
@@ -105,6 +105,16 @@
            .attr("y2", y)
            .attr("stroke", "#ccc");
 
+          chart.selectAll("line.voly")
+            .data(volumeY.ticks(2))
+            .enter().append("svg:line")
+            .attr("class", "voly")
+            .attr("x1", margin)
+            .attr("x2", width - margin)
+            .attr("y1", volumeY)
+            .attr("y2", volumeY)
+            .attr("stroke", "#ccc");
+
           chart.selectAll("text.xrule")
            .data(x.ticks(axesCount))
            .enter().append("svg:text")
@@ -113,6 +123,7 @@
            .attr("y", height - margin)
            .attr("dy", 20)
            .attr("text-anchor", "middle")
+           .attr("font-size", "8px")
            .text(function(d){
               var dayte = new Date(d);
               return dayte.getMonth() + "/" + dayte.getDate();
@@ -122,7 +133,7 @@
           .data(y.ticks(10))
           .enter().append("svg:text")
           .attr("class", "yrule")
-          .attr("x", width - margin)
+          .attr("x", width - margin+15)
           .attr("y", y)
           .attr("dy", 0)
           .attr("dx", 20)		 
@@ -130,7 +141,18 @@
           .text(String);
 
 
-
+          chart.selectAll("text.volyrule")
+            .data(volumeY.ticks(2))
+            .enter().append("svg:text")
+            .attr("class", "volyrule")
+            .attr("x", width - margin  + 15)
+            .attr("y", volumeY)
+            .attr("dy", 0)
+            .attr("dx", 20)
+            .attr("text-anchor", "middle")
+            .text(function(d){
+                return (d/1000000)+ "mil";
+            });
     
 
     chart.selectAll("rect")
@@ -245,7 +267,7 @@
           div.style("opacity", 0);
         });
 
-      button.style("display", "block");
+    //  button.style("display", "block");
 
       idCount = 0;
     }		  
