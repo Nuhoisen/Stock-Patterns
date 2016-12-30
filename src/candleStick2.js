@@ -113,7 +113,8 @@
             .attr("x2", width - margin)
             .attr("y1", volumeY)
             .attr("y2", volumeY)
-            .attr("stroke", "#ccc");
+            .attr("stroke", "#ccc")
+            .attr("stroke-dasharray", "5, 5");
 
           chart.selectAll("text.xrule")
            .data(x.ticks(axesCount))

@@ -38,3 +38,7 @@ body {
         border-radius: 8px;         
         pointer-events: none;           
     }
+
+    line.voly{
+        border: 1px dotted #ccc;
+    }
