@@ -12,46 +12,6 @@
       .attr("class", "tooltip")
       .style("opacity", 0);
 
-    // var button = d3.select("body").append("button")
-    //   .attr("id", "downloadButton")
-    //   .style("display", "none")
-    //   .text("download chart")
-    //   .on("click", function(){
-    //       function triggerDownload (imgURI) {
-    //         var evt = new MouseEvent('click', {
-    //           view: window,
-    //           bubbles: false,
-    //           cancelable: true
-    //         });
-
-    //         var a = document.createElement('a');
-    //         a.setAttribute('download', 'MY_COOL_IMAGE.png');
-    //         a.setAttribute('href', imgURI);
-    //         a.setAttribute('target', '_blank');
-
-    //         a.dispatchEvent(evt);
-    //       }
-    //       var svg = document.querySelector("svg"),
-    //       canvas = document.querySelector("canvas"),
-    //       context = canvas.getContext("2d"),
-    //       svgData = (new XMLSerializer()).serializeToString(svg),
-    //       DOMURL  = window.URL || window.webkitURL || window,
-    //       image = new Image(),
-    //       svgBlob = new Blob([svgData], {type: 'image/svg+xml;charset=utf-8'}),
-    //       url = DOMURL.createObjectURL(svgBlob);
-
-    //       image.onload = function(){
-    //         context.drawImage(image, 0, 0);
-    //         DOMURL.revokeObjectURL(url);
-
-    //         var imgURI = canvas.toDataURL('image/png').replace('image/png', 'image/octet-stream');
-
-    //         triggerDownload(imgURI);
-    //       }
-    //       image.src = url;
-    //   });
-
-
     function min(a, b){ return a < b ? a : b ; }
     		 		     
     function max(a, b){ return a > b ? a : b; }    
@@ -66,24 +26,41 @@
         .remove();
       d3.selectAll("tooltip")
         .style("opacity", 0);
+
       var margin = 50;		   
       var yBottomMargin = 100;
-      var chart = d3.select("#graphLayout")
-    	  .append("svg:svg")
-    	  .attr("class", "chart")
-    	  .attr("width", width)
-    	  .attr("height", height);
+     
       var y = d3.scale.linear()
     	  .domain([d3.min(data.map(function(x) {return x["low"];})), d3.max(data.map(function(x){return x["high"];}))])
     	  .range([height-yBottomMargin, margin]);
       var x = d3.scale.linear()
     	  .domain([data[0].date.getTime(), data[data.length-1].date.getTime()])
         .range([margin, width-margin]);
-        
       var volumeY = d3.scale.linear()
         .domain([500, d3.max(data.map(function(de){return de["volume"];}))])
         .range([height-margin, height-yBottomMargin]);
+     
 
+      var chart = d3.select("#graphLayout")
+        .append("svg:svg")
+        .attr("class", "chart")
+        .attr("width", width)
+        .attr("height", height)
+        .on("mousemove", function(){
+          var localCoords = d3.mouse(this)
+          d3.select("#crossHairX")
+            .attr("y1", localCoords[1])
+            .attr("y2", localCoords[1]);
+
+          d3.select("#crossHairY")
+            .attr("x1", localCoords[0])
+            .attr("x2", localCoords[0]); 
+        });
+
+      function showCoords(event) {
+        var x = event.clientX;
+        var y = event.clientY;
+      }
 
         chart.selectAll("line.x")
            .data(x.ticks(axesCount))
@@ -268,42 +245,22 @@
           div.style("opacity", 0);
         });
 
+
+      chart.append("svg:line")
+        .attr("id", "crossHairX")
+        .attr("x1", margin)
+        .attr("x2", width-margin)
+        .attr("stroke", "#333333")
+        .attr("stroke-dasharray", "5, 5");
+
+
+      chart.append("svg:line")
+        .attr("id", "crossHairY")
+        .attr("y1", margin)
+        .attr("y2", height-margin)
+        .attr("stroke", "#333333")
+        .attr("stroke-dasharray", "5, 5");
     //  button.style("display", "block");
 
       idCount = 0;
     }		  
-
-  // String.prototype.format = function() {
-  //       var formatted = this;
-  //       for (var i = 0; i < arguments.length; i++) {
-  //         var regexp = new RegExp('\\{'+i+'\\}', 'gi');
-  //         formatted = formatted.replace(regexp, arguments[i]);
-  //       }
-  //       return formatted;
-  //   }
-
-  // function appendToData(x){
-  // 	if(data.length > 0){
-  // 	    return;
-  //         }
-  //         data = x.query.results.quote;
-  //         for(var i=0;i<data.length;i++){
-  //           data[i].timestamp = (new Date(data[i].date).getTime() / 1000);
-  //         }		  
-  //         data = data.sort(function(x, y){ return dateFormat(x.date).getTime() - dateFormat(y.date).getTime(); });			
-  //         buildChart(data);		  
-  //     }
-
-      // function buildQuery(){
-      //   var symbol = window.location.hash;
-      //   if(symbol === ""){
-      //      symbol = "AMZN";
-      //   }
-      //   symbol = symbol.replace("#", "");		  
-      //   var base = "select * from yahoo.finance.historicaldata where symbol = \"{0}\" and startDate = \"{1}\" and endDate = \"{2}\"";
-      //   var getDateString = d3.time.format("%Y-%m-%d");
-      //   var query = base.format(symbol, getDateString(start), getDateString(end));
-      //   query = encodeURIComponent(query);		    
-      //   var url = "http://query.yahooapis.com/v1/public/yql?q={0}&format=json&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys&callback=appendToData".format(query);
-      //   return url;
-      // }

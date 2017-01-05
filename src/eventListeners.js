@@ -37,16 +37,30 @@ document.getElementById("submitButton").addEventListener("click", function(){
             if(dd>5)
                 dd-=5;
             else{
-                dd = 5-dd;  
+                if(mm>1)
+                    mm-=1;
+                else{
+                    yyyy-=1;   
+                    mm = 12;
+                }
+                dd = 5-dd;
                 dd = daysInMonth(mm, yyyy) -dd;          
             }
             margin='d';
             break;
 
         case 1:
-            if(dd>20)
+            if(dd>20){
                 dd-=20;
+            }
             else{
+                if(mm>1)
+                    mm-=1;
+                else{   
+                    yyyy-=1;
+                    mm = 12;  
+                }
+
                 dd = 20 - dd;
                 dd = daysInMonth(mm, yyyy) -dd;
             }
@@ -62,9 +76,10 @@ document.getElementById("submitButton").addEventListener("click", function(){
                 dd= Math.abs(dd);
                 if(mm>1)
                     mm-=1;
-                else
+                else{
+                    yyyy-=1;
                     mm = 12;
-
+                }
                 temp = daysInMonth(mm, yyyy)
                 dd=temp-dd;
             }while(dd<1) 
@@ -79,9 +94,10 @@ document.getElementById("submitButton").addEventListener("click", function(){
                 dd= Math.abs(dd);
                 if(mm>1)
                     mm-=1;
-                else
+                else{
+                    yyyy-=1;
                     mm = 12;
-
+                }
                 temp = daysInMonth(mm, yyyy)
                 dd=temp-dd;
             }while(dd<1)
