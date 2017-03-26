@@ -35,13 +35,37 @@
       return newData;
     }
 
-    function buildLineGraph(fiftyDayData){        
+    function buildTwentyDayMovingAvg(passedData, maxLength){
+
+      var startingIndex = 30;
+      var newData = [];
+      var twentyIndex = startingIndex;
+      var twentyDayAvg = 0;
+      var count =0;
+      while(startingIndex<maxLength-20){
+          twentyIndex = startingIndex;
+          twentyDayAvg = 0;
+          count=0;
+          while(count<20)
+          {
+             twentyDayAvg+=passedData[twentyIndex++].close;
+             count++;
+          }
+          twentyDayAvg = twentyDayAvg/20;
+          newData.push(twentyDayAvg);
+          startingIndex++;
+      }
+      return newData;
+    }
+
+    function buildLineGraph(passedData){        
       var idCount = 0;
       var tracker = 3;
-      var data = fiftyDayData.slice(50, fiftyDayData.length);
-      var newData = buildFiftyDayMovingAvg(fiftyDayData, data.length);
+      var data = passedData.slice(50, passedData.length);
+      var fiftyDayData = buildFiftyDayMovingAvg(passedData, data.length);
+      var twentyDayData = buildTwentyDayMovingAvg(passedData, passedData.length);
       axesCount = data.length < 20 ? data.length : 20;
-    
+      
       d3.selectAll("svg")
         .remove();
       d3.selectAll("tooltip")
@@ -53,7 +77,7 @@
 
 
       var y = d3.scale.linear()
-    	  .domain([d3.min(fiftyDayData.map(function(x) {return x["low"];})), d3.max(fiftyDayData.map(function(x){return x["high"];}))])
+    	  .domain([d3.min(passedData.map(function(x) {return x["low"];})), d3.max(passedData.map(function(x){return x["high"];}))])
     	  .range([height-yBottomMargin, margin]);
      
       var x = d3.time.scale()
@@ -238,9 +262,10 @@
         yIndex = 1;
      
       idCount = 0;
+      
       //50 day moving average
       chart.selectAll("line.fiftyDayStem")
-        .data(newData)
+        .data(fiftyDayData)
         .enter().append("svg:line")
         .attr("id", function(d){
           return ("fiftyDayStem" + ((idCount++).toString()));
@@ -262,10 +287,52 @@
         })
         .attr("y2", function(d) {
           if(yIndex!=data.length)
-            return y(newData[yIndex++]); 
+            return y(fiftyDayData[yIndex++]); 
         })
         .attr("stroke", function(d){ 
           return "orange"; 
+        })
+        .on("mouseout", function(){
+          d3.select(this)
+            .style("opacity", 1);
+
+          d3.select("#" + this.id.replace("stem", "rect"))
+            .style("opacity", 1);
+
+          div.style("opacity", 0);
+        });
+
+        xIndex = 0;
+        yIndex = 1;
+     
+        //50 day moving average
+      chart.selectAll("line.twentyDayStem")
+        .data(twentyDayData)
+        .enter().append("svg:line")
+        .attr("id", function(d){
+          return ("twentyDayStem" + ((idCount++).toString()));
+        })
+        .attr("class", "twentyDayStem")
+        .attr("x1", function(d) { 
+          if(xIndex+1==data.length)
+            xIndex=1;
+          else
+            return x(data[xIndex++].date) ;//+ 0.25 * (width - 2 * margin)/ data.length;
+        })
+        .attr("x2", function(d) { 
+          if(xIndex!=data.length)
+            return x(data[xIndex++].date) ;//+ 0.25 * (width - 2 * margin)/ data.length;
+        })
+        .attr("y1", function(d) {
+          return y(d);
+            
+        })
+        .attr("y2", function(d) {
+          if(yIndex!=data.length)
+            return y(twentyDayData[yIndex++]); 
+        })
+        .attr("stroke", function(d){ 
+          return "red"; 
         })
         .on("mouseout", function(){
           d3.select(this)
