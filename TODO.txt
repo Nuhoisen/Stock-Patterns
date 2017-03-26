@@ -1,0 +1,3 @@
+Resolve problem with candle stick chart
+
+Resolve problem with <50 days back graphs

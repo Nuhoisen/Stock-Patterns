@@ -151,7 +151,29 @@ document.getElementById("suggestions").addEventListener("change", function(){
 });
 
 
+document.getElementById("twentyDayCheck").addEventListener("change", function(){
+    if(document.getElementById("twentyDayCheck").checked==true)
+    {
+        if(chart!=null)
+            addTwentyDayAvg();
+    }
+    else if(chart!=null)   
+        chart.selectAll("line.twentyDayStem")
+           .remove();
 
+})
+
+document.getElementById("fiftyDayCheck").addEventListener("change", function(){
+    if(document.getElementById("fiftyDayCheck").checked==true)
+    {
+        if(chart!=null)
+            addFiftyDayAvg();
+    }
+    else if(chart!=null)   
+        chart.selectAll("line.fiftyDayStem")
+           .remove();
+
+})
 
 function parseDates(dd, mm, yyyy){
     if(dd < 10){

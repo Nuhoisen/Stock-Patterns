@@ -4,7 +4,12 @@
 
     var monthFormat = d3.timeFormat("%m/%e");
     var dateFormat = d3.timeFormat("%b-%e-%Y");
-    
+    var myYScale;
+    var myXScale;
+    var twentyDayData = [];
+    var fiftyDayData = [];
+    var chart = null;
+    var data = [];
     // var end = new Date();
     // var start = new Date(end.getTime() - 1000 * 60 * 60 * 24 * 60);
 
@@ -39,7 +44,7 @@
 
       var startingIndex = 30;
       var newData = [];
-      var twentyIndex = startingIndex;
+      var twentyIndex = 30;
       var twentyDayAvg = 0;
       var count =0;
       while(startingIndex<maxLength-20){
@@ -61,9 +66,9 @@
     function buildLineGraph(passedData){        
       var idCount = 0;
       var tracker = 3;
-      var data = passedData.slice(50, passedData.length);
-      var fiftyDayData = buildFiftyDayMovingAvg(passedData, data.length);
-      var twentyDayData = buildTwentyDayMovingAvg(passedData, passedData.length);
+      data = passedData.slice(50, passedData.length);
+      fiftyDayData = buildFiftyDayMovingAvg(passedData, data.length);
+      twentyDayData = buildTwentyDayMovingAvg(passedData, passedData.length);
       axesCount = data.length < 20 ? data.length : 20;
       
       d3.selectAll("svg")
@@ -76,11 +81,11 @@
       var xIndex = 0, yIndex = 0;
 
 
-      var y = d3.scale.linear()
-    	  .domain([d3.min(passedData.map(function(x) {return x["low"];})), d3.max(passedData.map(function(x){return x["high"];}))])
+      myYScale = d3.scale.linear()
+    	  .domain([d3.min(passedData.map(function(myXScale) {return myXScale["low"];})), d3.max(passedData.map(function(myXScale){return myXScale["high"];}))])
     	  .range([height-yBottomMargin, margin]);
      
-      var x = d3.time.scale()
+      myXScale = d3.time.scale()
     	  .domain([data[0].date.getTime(), data[data.length-1].date.getTime()])
         .range([margin, width-margin]);
      
@@ -89,7 +94,7 @@
         .range([height-margin, height-yBottomMargin]);
      
 
-    var chart = d3.select("#graphLayout")
+    chart = d3.select("#graphLayout")
         .append("svg:svg")
         .attr("class", "chart")
         .attr("width", width)
@@ -105,24 +110,24 @@
                   .attr("x2", localCoords[0]); 
               });
 
-        chart.selectAll("line.x")
-           .data(x.ticks(axesCount))
+        chart.selectAll("line.myXScale")
+           .data(myXScale.ticks(axesCount))
            .enter().append("svg:line")
-           .attr("class", "x")
-           .attr("x1", x)
-           .attr("x2", x)
+           .attr("class", "myXScale")
+           .attr("x1", myXScale)
+           .attr("x2", myXScale)
            .attr("y1", margin)
            .attr("y2", height - yBottomMargin)
            .attr("stroke", "#ccc");
 
-          chart.selectAll("line.y")
-           .data(y.ticks(10))
+          chart.selectAll("line.myYScale")
+           .data(myYScale.ticks(10))
            .enter().append("svg:line")
-           .attr("class", "y")
+           .attr("class", "myYScale")
            .attr("x1", margin)
            .attr("x2", width - margin)
-           .attr("y1", y)
-           .attr("y2", y)
+           .attr("y1", myYScale)
+           .attr("y2", myYScale)
            .attr("stroke", "#ccc");
 
           chart.selectAll("line.voly")
@@ -137,10 +142,10 @@
             .attr("stroke-dasharray", "5, 5");
 
           chart.selectAll("text.xrule")
-           .data(x.ticks(axesCount))
+           .data(myXScale.ticks(axesCount))
            .enter().append("svg:text")
            .attr("class", "xrule")
-           .attr("x", x)
+           .attr("x", myXScale)
            .attr("y", height - margin)
            .attr("dy", 20)
            .attr("text-anchor", "middle")
@@ -151,11 +156,11 @@
            });
 
           chart.selectAll("text.yrule")
-          .data(y.ticks(10))
+          .data(myYScale.ticks(10))
           .enter().append("svg:text")
           .attr("class", "yrule")
           .attr("x", width - margin+15)
-          .attr("y", y)
+          .attr("y", myYScale)
           .attr("dy", 0)
           .attr("dx", 20)		 
           .attr("text-anchor", "middle")
@@ -182,10 +187,10 @@
         .enter().append("svg:line")
         .attr("class", "volumeStem")
         .attr("x1", function(d){
-         return x(d.date) ;//+ 0.25 * (width - 2 * margin)/ data.length;
+         return myXScale(d.date) ;//+ 0.25 * (width - 2 * margin)/ data.length;
         })
         .attr("x2", function(d){
-        return x(d.date) ;//+ 0.25 * (width - 2 * margin)/ data.length;
+        return myXScale(d.date) ;//+ 0.25 * (width - 2 * margin)/ data.length;
         })
         .attr("y1", function(d){
           return volumeY(d.volume);
@@ -210,21 +215,21 @@
           if(xIndex+1==data.length)
             xIndex=1;
           else
-            return x(data[xIndex++].date) ;//+ 0.25 * (width - 2 * margin)/ data.length;
+            return myXScale(data[xIndex++].date) ;//+ 0.25 * (width - 2 * margin)/ data.length;
         })
         .attr("x2", function(d) { 
           if(xIndex!=data.length)
-            return x(data[xIndex++].date) ;//+ 0.25 * (width - 2 * margin)/ data.length;
+            return myXScale(data[xIndex++].date) ;//+ 0.25 * (width - 2 * margin)/ data.length;
         })
         .attr("y1", function(d) {
           if(yIndex+1==data.length)
             yIndex=1;
           else 
-            return y(data[yIndex++].close);
+            return myYScale(data[yIndex++].close);
         })
         .attr("y2", function(d) {
            if(yIndex!=data.length)
-            return y(data[yIndex++].close); 
+            return myYScale(data[yIndex++].close); 
         })
         .attr("stroke", function(d){ 
           return "green"; 
@@ -258,91 +263,13 @@
           div.style("opacity", 0);
         });
 
-        xIndex = 0;
-        yIndex = 1;
+
+        if(document.getElementById("twentyDayCheck").checked==true)
+          addTwentyDayAvg();
+        if(document.getElementById("fiftyDayCheck").checked==true)
+          addFiftyDayAvg();
      
-      idCount = 0;
-      
-      //50 day moving average
-      chart.selectAll("line.fiftyDayStem")
-        .data(fiftyDayData)
-        .enter().append("svg:line")
-        .attr("id", function(d){
-          return ("fiftyDayStem" + ((idCount++).toString()));
-        })
-        .attr("class", "fiftyDayStem")
-        .attr("x1", function(d) { 
-          if(xIndex+1==data.length)
-            xIndex=1;
-          else
-            return x(data[xIndex++].date) ;//+ 0.25 * (width - 2 * margin)/ data.length;
-        })
-        .attr("x2", function(d) { 
-          if(xIndex!=data.length)
-            return x(data[xIndex++].date) ;//+ 0.25 * (width - 2 * margin)/ data.length;
-        })
-        .attr("y1", function(d) {
-          return y(d);
-            
-        })
-        .attr("y2", function(d) {
-          if(yIndex!=data.length)
-            return y(fiftyDayData[yIndex++]); 
-        })
-        .attr("stroke", function(d){ 
-          return "orange"; 
-        })
-        .on("mouseout", function(){
-          d3.select(this)
-            .style("opacity", 1);
-
-          d3.select("#" + this.id.replace("stem", "rect"))
-            .style("opacity", 1);
-
-          div.style("opacity", 0);
-        });
-
-        xIndex = 0;
-        yIndex = 1;
      
-        //50 day moving average
-      chart.selectAll("line.twentyDayStem")
-        .data(twentyDayData)
-        .enter().append("svg:line")
-        .attr("id", function(d){
-          return ("twentyDayStem" + ((idCount++).toString()));
-        })
-        .attr("class", "twentyDayStem")
-        .attr("x1", function(d) { 
-          if(xIndex+1==data.length)
-            xIndex=1;
-          else
-            return x(data[xIndex++].date) ;//+ 0.25 * (width - 2 * margin)/ data.length;
-        })
-        .attr("x2", function(d) { 
-          if(xIndex!=data.length)
-            return x(data[xIndex++].date) ;//+ 0.25 * (width - 2 * margin)/ data.length;
-        })
-        .attr("y1", function(d) {
-          return y(d);
-            
-        })
-        .attr("y2", function(d) {
-          if(yIndex!=data.length)
-            return y(twentyDayData[yIndex++]); 
-        })
-        .attr("stroke", function(d){ 
-          return "red"; 
-        })
-        .on("mouseout", function(){
-          d3.select(this)
-            .style("opacity", 1);
-
-          d3.select("#" + this.id.replace("stem", "rect"))
-            .style("opacity", 1);
-
-          div.style("opacity", 0);
-        });
 
       //crossHairs
       chart.append("svg:line")
@@ -363,3 +290,90 @@
 
       idCount = 0;
     }		  
+
+//20 day moving average
+function addTwentyDayAvg(){
+
+     var xIndex = 0, yIndex = 1,idCount = 0;
+      chart.selectAll("line.twentyDayStem")
+        .data(twentyDayData)
+        .enter().append("svg:line")
+        .attr("id", function(d){
+          return ("twentyDayStem" + ((idCount++).toString()));
+        })
+        .attr("class", "twentyDayStem")
+        .attr("x1", function(d) { 
+          if(xIndex+1==data.length)
+            xIndex=1;
+          else
+            return myXScale(data[xIndex++].date) ;//+ 0.25 * (width - 2 * margin)/ data.length;
+        })
+        .attr("x2", function(d) { 
+          if(xIndex!=data.length)
+            return myXScale(data[xIndex++].date) ;//+ 0.25 * (width - 2 * margin)/ data.length;
+        })
+        .attr("y1", function(d) {
+          return myYScale(d);
+            
+        })
+        .attr("y2", function(d) {
+          if(yIndex!=data.length)
+            return myYScale(twentyDayData[yIndex++]); 
+        })
+        .attr("stroke", function(d){ 
+          return "red"; 
+        })
+        .on("mouseout", function(){
+          d3.select(this)
+            .style("opacity", 1);
+
+          d3.select("#" + this.id.replace("stem", "rect"))
+            .style("opacity", 1);
+
+          div.style("opacity", 0);
+        });
+}
+
+function addFiftyDayAvg(){
+    var xIndex = 0, yIndex = 1,idCount = 0;
+     
+   //50 day moving average
+      chart.selectAll("line.fiftyDayStem")
+        .data(fiftyDayData)
+        .enter().append("svg:line")
+        .attr("id", function(d){
+          return ("fiftyDayStem" + ((idCount++).toString()));
+        })
+        .attr("class", "fiftyDayStem")
+        .attr("x1", function(d) { 
+          if(xIndex+1==data.length)
+            xIndex=1;
+          else
+            return myXScale(data[xIndex++].date) ;//+ 0.25 * (width - 2 * margin)/ data.length;
+        })
+        .attr("x2", function(d) { 
+          if(xIndex!=data.length)
+            return myXScale(data[xIndex++].date) ;//+ 0.25 * (width - 2 * margin)/ data.length;
+        })
+        .attr("y1", function(d) {
+          return myYScale(d);
+            
+        })
+        .attr("y2", function(d) {
+          if(yIndex!=data.length)
+            return myYScale(fiftyDayData[yIndex++]); 
+        })
+        .attr("stroke", function(d){ 
+          return "orange"; 
+        })
+        .on("mouseout", function(){
+          d3.select(this)
+            .style("opacity", 1);
+
+          d3.select("#" + this.id.replace("stem", "rect"))
+            .style("opacity", 1);
+
+          div.style("opacity", 0);
+        });
+
+}

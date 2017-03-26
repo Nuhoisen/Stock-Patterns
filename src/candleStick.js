@@ -4,7 +4,7 @@
 
     var monthFormat = d3.timeFormat("%m/%e");
     var dateFormat = d3.timeFormat("%b-%e-%Y");
-    
+  
     // var end = new Date();
     // var start = new Date(end.getTime() - 1000 * 60 * 60 * 24 * 60);
 
@@ -30,10 +30,10 @@
       var margin = 50;		   
       var yBottomMargin = 100;
      
-      var y = d3.scale.linear()
-    	  .domain([d3.min(data.map(function(x) {return x["low"];})), d3.max(data.map(function(x){return x["high"];}))])
+      var myYScale = d3.scale.linear()
+    	  .domain([d3.min(data.map(function(myXScale) {return myXScale["low"];})), d3.max(data.map(function(myXScale){return myXScale["high"];}))])
     	  .range([height-yBottomMargin, margin]);
-      var x = d3.time.scale()
+      var myXScale = d3.time.scale()
     	  .domain([data[0].date.getTime(), data[data.length-1].date.getTime()])
         .range([margin, width-margin]);
       var xDataScale= d3.scale.linear()
@@ -62,28 +62,28 @@
         });
 
       function showCoords(event) {
-        var x = event.clientX;
-        var y = event.clientY;
+        var myXScale = event.clientX;
+        var myYScale = event.clientY;
       }
 
-        chart.selectAll("line.x")
-           .data(x.ticks(axesCount))
+        chart.selectAll("line.myXScale")
+           .data(myXScale.ticks(axesCount))
            .enter().append("svg:line")
-           .attr("class", "x")
-           .attr("x1", x)
-           .attr("x2", x)
+           .attr("class", "myXScale")
+           .attr("x1", myXScale)
+           .attr("x2", myXScale)
            .attr("y1", margin)
            .attr("y2", height - yBottomMargin)
            .attr("stroke", "#ccc");
 
-          chart.selectAll("line.y")
-           .data(y.ticks(10))
+          chart.selectAll("line.myYScale")
+           .data(myYScale.ticks(10))
            .enter().append("svg:line")
-           .attr("class", "y")
+           .attr("class", "myYScale")
            .attr("x1", margin)
            .attr("x2", width - margin)
-           .attr("y1", y)
-           .attr("y2", y)
+           .attr("y1", myYScale)
+           .attr("y2", myYScale)
            .attr("stroke", "#ccc");
 
           chart.selectAll("line.voly")
@@ -98,10 +98,10 @@
             .attr("stroke-dasharray", "5, 5");
 
           chart.selectAll("text.xrule")
-           .data(x.ticks(axesCount))
+           .data(myXScale.ticks(axesCount))
            .enter().append("svg:text")
            .attr("class", "xrule")
-           .attr("x", x)
+           .attr("x", myXScale)
            .attr("y", height - margin)
            .attr("dy", 20)
            .attr("text-anchor", "middle")
@@ -112,11 +112,11 @@
            });
 
           chart.selectAll("text.yrule")
-          .data(y.ticks(10))
+          .data(myYScale.ticks(10))
           .enter().append("svg:text")
           .attr("class", "yrule")
           .attr("x", width - margin+15)
-          .attr("y", y)
+          .attr("y", myYScale)
           .attr("dy", 0)
           .attr("dx", 20)		 
           .attr("text-anchor", "middle")
@@ -143,11 +143,11 @@
       .attr("id", function(d){
           return ("rect"+(idCount++).toString());
       })
-      .attr("x", function(d) { 
-        return x(d.date)-((0.5 * (width - 2*margin)/data.length)/2); 
+      .attr("myXScale", function(d) { 
+        return myXScale(d.date)-((0.5 * (width - 2*margin)/data.length)/2); 
       })
-      .attr("y", function(d) {return y(max(d.open, d.close));})		  
-      .attr("height", function(d) { return y(min(d.open, d.close))-y(max(d.open, d.close));})
+      .attr("myYScale", function(d) {return myYScale(max(d.open, d.close));})		  
+      .attr("height", function(d) { return myYScale(min(d.open, d.close))-myYScale(max(d.open, d.close));})
       .attr("width", function(d) { return 0.5 * (width - 2*margin)/data.length; })
       .attr("fill",function(d) { return d.open > d.close ? "red" : "green" ;})
       .on("mouseover", function(d){
@@ -182,10 +182,10 @@
         .enter().append("svg:line")
         .attr("class", "volumeStem")
         .attr("x1", function(d){
-         return x(d.date) ;//+ 0.25 * (width - 2 * margin)/ data.length;
+         return myXScale(d.date) ;//+ 0.25 * (width - 2 * margin)/ data.length;
         })
         .attr("x2", function(d){
-        return x(d.date) ;//+ 0.25 * (width - 2 * margin)/ data.length;
+        return myXScale(d.date) ;//+ 0.25 * (width - 2 * margin)/ data.length;
         })
         .attr("y1", function(d){
           return volumeY(d.volume);
@@ -208,16 +208,16 @@
         })
         .attr("class", "stem")
         .attr("x1", function(d) { 
-          return x(d.date) ;//+ 0.25 * (width - 2 * margin)/ data.length;
+          return myXScale(d.date) ;//+ 0.25 * (width - 2 * margin)/ data.length;
         })
         .attr("x2", function(d) { 
-          return x(d.date) ;//+ 0.25 * (width - 2 * margin)/ data.length;
+          return myXScale(d.date) ;//+ 0.25 * (width - 2 * margin)/ data.length;
         })
         .attr("y1", function(d) { 
-          return y(d.high);
+          return myYScale(d.high);
         })
         .attr("y2", function(d) {
-         return y(d.low); 
+         return myYScale(d.low); 
         })
         .attr("stroke", function(d){ 
           return d.open > d.close ? "red" : "green"; 
@@ -270,3 +270,4 @@
 
       idCount = 0;
     }		  
+
