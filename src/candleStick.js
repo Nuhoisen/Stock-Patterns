@@ -1,91 +1,272 @@
-function buildChart(data){
-	
+    var axesCount = 30;
+    var width = 900;
+    var height = 500;
 
-    var margin = {top: 20, right: 20, bottom: 30, left: 50},
-            width = 960 - margin.left - margin.right,
-            height = 500 - margin.top - margin.bottom;
+    var monthFormat = d3.timeFormat("%m/%e");
+    var dateFormat = d3.timeFormat("%b-%e-%Y");
+    
+    // var end = new Date();
+    // var start = new Date(end.getTime() - 1000 * 60 * 60 * 24 * 60);
 
-    var parseDate = d3.timeParse("%d-%b-%y");
+    var div = d3.select("body").append("div")
+      .attr("class", "tooltip")
+      .style("opacity", 0);
 
-    var x = techan.scale.financetime()
-            .range([0, width]);
+    function min(a, b){ return a < b ? a : b ; }
+    		 		     
+    function max(a, b){ return a > b ? a : b; }    
 
-    var y = d3.scaleLinear()
-            .range([height, 0]);
+    function buildCandlestick(data){        
+      axesCount = data.length < 25 ? data.length : 25;
+      var idCount = 0;
+      var increment =  data.length/axesCount;
+      var tracker = 3;
+      
+      d3.selectAll("svg")
+        .remove();
+      d3.selectAll("tooltip")
+        .style("opacity", 0);
 
-    var candlestick = techan.plot.candlestick()
-            .xScale(x)
-            .yScale(y);
+      var margin = 50;		   
+      var yBottomMargin = 100;
+     
+      var y = d3.scale.linear()
+    	  .domain([d3.min(data.map(function(x) {return x["low"];})), d3.max(data.map(function(x){return x["high"];}))])
+    	  .range([height-yBottomMargin, margin]);
+      var x = d3.time.scale()
+    	  .domain([data[0].date.getTime(), data[data.length-1].date.getTime()])
+        .range([margin, width-margin]);
+      var xDataScale= d3.scale.linear()
+          .domain([data[0], data[data.length-1]])
+          .range([margin, width-margin]);
 
-    var xAxis = d3.axisBottom()
-            .scale(x);
+      var volumeY = d3.scale.linear()
+        .domain([500, d3.max(data.map(function(de){return de["volume"];}))])
+        .range([height-margin, height-yBottomMargin]);
+     
 
-    var yAxis = d3.axisLeft()
-            .scale(y);
+      var chart = d3.select("#graphLayout")
+        .append("svg:svg")
+        .attr("class", "chart")
+        .attr("width", width)
+        .attr("height", height)
+        .on("mousemove", function(){
+          var localCoords = d3.mouse(this)
+          d3.select("#crossHairX")
+            .attr("y1", localCoords[1])
+            .attr("y2", localCoords[1]);
 
-    var svg = d3.select("body").append("svg")
-            .attr("width", width + margin.left + margin.right)
-            .attr("height", height + margin.top + margin.bottom)
-            .append("g")
-            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+          d3.select("#crossHairY")
+            .attr("x1", localCoords[0])
+            .attr("x2", localCoords[0]); 
+        });
+
+      function showCoords(event) {
+        var x = event.clientX;
+        var y = event.clientY;
+      }
+
+        chart.selectAll("line.x")
+           .data(x.ticks(axesCount))
+           .enter().append("svg:line")
+           .attr("class", "x")
+           .attr("x1", x)
+           .attr("x2", x)
+           .attr("y1", margin)
+           .attr("y2", height - yBottomMargin)
+           .attr("stroke", "#ccc");
+
+          chart.selectAll("line.y")
+           .data(y.ticks(10))
+           .enter().append("svg:line")
+           .attr("class", "y")
+           .attr("x1", margin)
+           .attr("x2", width - margin)
+           .attr("y1", y)
+           .attr("y2", y)
+           .attr("stroke", "#ccc");
+
+          chart.selectAll("line.voly")
+            .data(volumeY.ticks(2))
+            .enter().append("svg:line")
+            .attr("class", "voly")
+            .attr("x1", margin)
+            .attr("x2", width - margin)
+            .attr("y1", volumeY)
+            .attr("y2", volumeY)
+            .attr("stroke", "#ccc")
+            .attr("stroke-dasharray", "5, 5");
+
+          chart.selectAll("text.xrule")
+           .data(x.ticks(axesCount))
+           .enter().append("svg:text")
+           .attr("class", "xrule")
+           .attr("x", x)
+           .attr("y", height - margin)
+           .attr("dy", 20)
+           .attr("text-anchor", "middle")
+           .attr("font-size", "8px")
+           .text(function(d){
+              var dayte = new Date(d);
+              return dayte.getMonth()+1 + "/" + dayte.getDate();
+           });
+
+          chart.selectAll("text.yrule")
+          .data(y.ticks(10))
+          .enter().append("svg:text")
+          .attr("class", "yrule")
+          .attr("x", width - margin+15)
+          .attr("y", y)
+          .attr("dy", 0)
+          .attr("dx", 20)		 
+          .attr("text-anchor", "middle")
+          .text(String);
 
 
+          chart.selectAll("text.volyrule")
+            .data(volumeY.ticks(2))
+            .enter().append("svg:text")
+            .attr("class", "volyrule")
+            .attr("x", width - margin  + 15)
+            .attr("y", volumeY)
+            .attr("dy", 0)
+            .attr("dx", 20)
+            .attr("text-anchor", "middle")
+            .text(function(d){
+                return (d/1000000)+ "mil";
+            });
+    
 
-    var accessor = candlestick.accessor();
-    //find way to parse date
-    data = data.slice(data.length-200).map(function(d) { 
-        d.date = String(d.date);
-        d.date = d.date.split(" ");
-        d.date[3] = d.date[3].substr(2,3);
-        d.date = d.date[2] + "-" + d.date[1] + "-" + d.date[3];
-        d.date = parseDate(d.date);
-        return {
-            date: +d.date,
-            open: +d.open,
-            high: +d.high,
-            low: +d.low,
-            close: +d.close,
-            volume: +d.volume
-        };
-    }).sort(function(a, b) { 
-        return d3.ascending(accessor.d(a), accessor.d(b)); 
-    });
-
-    svg.append("g")
-            .attr("class", "candlestick");
-
-    svg.append("g")
-            .attr("class", "x axis")
-            .attr("transform", "translate(0," + height + ")");
-
-    svg.append("g")
-            .attr("class", "y axis")
-            .append("text")
-            .attr("transform", "rotate(-90)")
-            .attr("y", 6)
-            .attr("dy", ".71em")
-            .style("text-anchor", "end")
-            .text("Price ($)");
-
-    // Data to display initially
-    draw(data.slice(data.length-200));
-    // Only want this button to be active if the data has loaded
-    d3.select("button").on("click", function() { draw(data); }).style("display", "inline");
-
-    function draw(data) {
-        x.domain(data.map(
-            candlestick.accessor().d
-            ));
-        y.domain(techan.scale.plot.ohlc(data, candlestick.accessor()).domain());
-
-        svg.selectAll("g.candlestick").datum(data).call(candlestick);
-        svg.selectAll("g.y.axis").call(yAxis);
-        svg.selectAll("g.x.axis").call(xAxis);
+    chart.selectAll("rect")
+      .data(data)
+      .enter().append("svg:rect")
+      .attr("id", function(d){
+          return ("rect"+(idCount++).toString());
+      })
+      .attr("x", function(d) { 
+        return x(d.date)-((0.5 * (width - 2*margin)/data.length)/2); 
+      })
+      .attr("y", function(d) {return y(max(d.open, d.close));})		  
+      .attr("height", function(d) { return y(min(d.open, d.close))-y(max(d.open, d.close));})
+      .attr("width", function(d) { return 0.5 * (width - 2*margin)/data.length; })
+      .attr("fill",function(d) { return d.open > d.close ? "red" : "green" ;})
+      .on("mouseover", function(d){
+        d3.select(this)
+          .style("opacity", 0.5);
+        d3.select(("#" + this.id.replace("rect", "stem")))
+          .style("opacity", 0.2);
+        div.transition()
+          .duration(200)
+          .style("opacity", 0.9);
+        div.html("date:" + dateFormat(d.date) + "<br/>"
+                + "open:" + Math.round(d.open*100)/100 + "<br/>"
+                + "close:" + Math.round(d.close*100)/100 + "<br/>"
+                + "high:" + Math.round(d.high*100)/100 + "<br/>"
+                + "low:" + Math.round(d.low*100)/100 + "<br/>"
+                + "volume:" + d.volume.toString())
+          .style("left", (d3.event.pageX)+ "px")
+          .style("top", (d3.event.pageY) + "px");
+      })
+      .on("mouseout", function(){
+       
+        d3.select(("#"+ this.id.replace("rect", "stem")))
+          .style("opacity", 1);
+        d3.select(this)
+          .style("opacity", 1);
         
-    }
-}
+        div.style("opacity", 0);
+      });
+      
+      chart.selectAll("line.stem")
+        .data(data)
+        .enter().append("svg:line")
+        .attr("class", "volumeStem")
+        .attr("x1", function(d){
+         return x(d.date) ;//+ 0.25 * (width - 2 * margin)/ data.length;
+        })
+        .attr("x2", function(d){
+        return x(d.date) ;//+ 0.25 * (width - 2 * margin)/ data.length;
+        })
+        .attr("y1", function(d){
+          return volumeY(d.volume);
+        })
+        .attr("y2", volumeY(0))
+        .attr("stroke", function(d){
+          return d.open > d.close ? "red" : "green";
+        });
 
 
-function lookForInitialPeak(){
 
-}
+
+      idCount = 0;
+
+      chart.selectAll("line.stem")
+        .data(data)
+        .enter().append("svg:line")
+        .attr("id", function(d){
+          return ("stem" + ((idCount++).toString()));
+        })
+        .attr("class", "stem")
+        .attr("x1", function(d) { 
+          return x(d.date) ;//+ 0.25 * (width - 2 * margin)/ data.length;
+        })
+        .attr("x2", function(d) { 
+          return x(d.date) ;//+ 0.25 * (width - 2 * margin)/ data.length;
+        })
+        .attr("y1", function(d) { 
+          return y(d.high);
+        })
+        .attr("y2", function(d) {
+         return y(d.low); 
+        })
+        .attr("stroke", function(d){ 
+          return d.open > d.close ? "red" : "green"; 
+        })
+        .on("mouseover", function(d){
+          d3.select(this)
+            .style("opacity", 0.5);
+         
+          d3.select("#" + this.id.replace("stem", "rect"))
+            .style("opacity", 0.5);
+
+          div.transition()
+            .duration(200)
+            .style("opacity", 0.9);
+          div.html("date:" + dateFormat(d.date) + "<br/>"
+                  + "open:" + d.open.toString() + "<br/>"
+                  + "close:" + d.close.toString() + "<br/>"
+                  + "high:" + d.high.toString() + "<br/>"
+                  + "low:" + d.low.toString()+ "<br/>"
+                  + "volume:" + d.volume.toString())
+            .style("left", (d3.event.pageX)+ "px")
+            .style("top", (d3.event.pageY) + "px");
+        })
+        .on("mouseout", function(){
+          d3.select(this)
+            .style("opacity", 1);
+
+          d3.select("#" + this.id.replace("stem", "rect"))
+            .style("opacity", 1);
+
+          div.style("opacity", 0);
+        });
+
+
+      chart.append("svg:line")
+        .attr("id", "crossHairX")
+        .attr("x1", margin)
+        .attr("x2", width-margin)
+        .attr("stroke", "#333333")
+        .attr("stroke-dasharray", "5, 5");
+
+
+      chart.append("svg:line")
+        .attr("id", "crossHairY")
+        .attr("y1", margin)
+        .attr("y2", height-margin)
+        .attr("stroke", "#333333")
+        .attr("stroke-dasharray", "5, 5");
+    //  button.style("display", "block");
+
+      idCount = 0;
+    }		  

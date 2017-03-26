@@ -50,6 +50,7 @@ document.getElementById("submitButton").addEventListener("click", function(){
             break;
 
         case 1:
+            
             if(dd>20){
                 dd-=20;
             }
@@ -68,8 +69,10 @@ document.getElementById("submitButton").addEventListener("click", function(){
             break;
 
         case 2:
-           
-            dd=50-dd;   //remainder
+            if(document.getElementById("graphSelection").value=="LineGraph")
+                dd=100-dd;   //remainder
+            else
+                dd=50-dd;   //remainder
 
             var temp;
             do{
@@ -87,7 +90,10 @@ document.getElementById("submitButton").addEventListener("click", function(){
             break;
         
         case 3:
-            dd=200-dd;   //remainder
+            if(document.getElementById("graphSelection").value=="LineGraph")
+                dd=250-dd;   //remainder
+            else
+                dd=200-dd;   //remainder
 
             var temp;
             do{
@@ -101,20 +107,31 @@ document.getElementById("submitButton").addEventListener("click", function(){
                 temp = daysInMonth(mm, yyyy)
                 dd=temp-dd;
             }while(dd<1)
-            margin = 'w';
+            if(document.getElementById("graphSelection").value=="LineGraph")
+                margin = 'd';
+            else
+                margin = 'w';
+            
             break;
 
         case 4:
             yyyy-=1;
-            margin = 'w';
+            if(document.getElementById("graphSelection").value=="LineGraph")
+                margin = 'd';
+            else
+                margin = 'w';
             break;
         case 5:
             yyyy-=5;
-            margin = 'm';
+            if(document.getElementById("graphSelection").value=="LineGraph")
+                margin = 'w';
+            else
+                margin = 'm';
             break;
     }
         if((daysInMonth(mm, yyyy)) == 28 && (dd == 29))
             dd = 28;
+
 
 
     try{
@@ -122,7 +139,7 @@ document.getElementById("submitButton").addEventListener("click", function(){
     }
     catch(err){
         var sugg = document.getElementById("suggestions");
-        retrieveQuotes(sugg.options[sugg.selectedIndex].value);
+        retrieveQuotes(sugg.options[sugg.selectedIndex].value, parseDates(dd, mm, yyyy), margin);
     }    
 	syms = [];
 	//document.getElementById("tickerInput").value='';
@@ -132,6 +149,9 @@ document.getElementById("suggestions").addEventListener("change", function(){
     var sel= document.getElementById("suggestions");
     document.getElementById("tickerInput").value =sel.value;
 });
+
+
+
 
 function parseDates(dd, mm, yyyy){
     if(dd < 10){

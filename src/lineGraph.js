@@ -16,12 +16,32 @@
     		 		     
     function max(a, b){ return a > b ? a : b; }    
 
-    function buildChart(data){        
-      axesCount = data.length < 25 ? data.length : 25;
+    function buildFiftyDayMovingAvg(passedData, maxLength){
+      var newDataIndex= 0;
+      var newData = [];
+      var fiftyIndex = newDataIndex;
+      var fiftyDayAvg = 0;
+        
+      while(newDataIndex<maxLength){
+          fiftyIndex = newDataIndex;
+          fiftyDayAvg = 0;
+          while(fiftyIndex<newDataIndex+50)
+              fiftyDayAvg+=passedData[fiftyIndex++].close;
+
+          fiftyDayAvg = fiftyDayAvg/50;
+          newData.push(fiftyDayAvg);
+          newDataIndex++;
+      }
+      return newData;
+    }
+
+    function buildLineGraph(fiftyDayData){        
       var idCount = 0;
-      var increment =  data.length/axesCount;
       var tracker = 3;
-      
+      var data = fiftyDayData.slice(50, fiftyDayData.length);
+      var newData = buildFiftyDayMovingAvg(fiftyDayData, data.length);
+      axesCount = data.length < 20 ? data.length : 20;
+    
       d3.selectAll("svg")
         .remove();
       d3.selectAll("tooltip")
@@ -29,38 +49,37 @@
 
       var margin = 50;		   
       var yBottomMargin = 100;
-     
+      var xIndex = 0, yIndex = 0;
+
+
       var y = d3.scale.linear()
-    	  .domain([d3.min(data.map(function(x) {return x["low"];})), d3.max(data.map(function(x){return x["high"];}))])
+    	  .domain([d3.min(fiftyDayData.map(function(x) {return x["low"];})), d3.max(fiftyDayData.map(function(x){return x["high"];}))])
     	  .range([height-yBottomMargin, margin]);
-      var x = d3.scale.linear()
+     
+      var x = d3.time.scale()
     	  .domain([data[0].date.getTime(), data[data.length-1].date.getTime()])
         .range([margin, width-margin]);
+     
       var volumeY = d3.scale.linear()
         .domain([500, d3.max(data.map(function(de){return de["volume"];}))])
         .range([height-margin, height-yBottomMargin]);
      
 
-      var chart = d3.select("#graphLayout")
+    var chart = d3.select("#graphLayout")
         .append("svg:svg")
         .attr("class", "chart")
         .attr("width", width)
         .attr("height", height)
-        .on("mousemove", function(){
-          var localCoords = d3.mouse(this)
-          d3.select("#crossHairX")
-            .attr("y1", localCoords[1])
-            .attr("y2", localCoords[1]);
+       .on("mousemove", function(){
+                var localCoords = d3.mouse(this)
+                d3.select("#crossHairX")
+                  .attr("y1", localCoords[1])
+                  .attr("y2", localCoords[1]);
 
-          d3.select("#crossHairY")
-            .attr("x1", localCoords[0])
-            .attr("x2", localCoords[0]); 
-        });
-
-      function showCoords(event) {
-        var x = event.clientX;
-        var y = event.clientY;
-      }
+                d3.select("#crossHairY")
+                  .attr("x1", localCoords[0])
+                  .attr("x2", localCoords[0]); 
+              });
 
         chart.selectAll("line.x")
            .data(x.ticks(axesCount))
@@ -104,7 +123,7 @@
            .attr("font-size", "8px")
            .text(function(d){
               var dayte = new Date(d);
-              return dayte.getMonth() + "/" + dayte.getDate();
+              return dayte.getMonth()+1 + "/" + dayte.getDate();
            });
 
           chart.selectAll("text.yrule")
@@ -131,55 +150,18 @@
             .text(function(d){
                 return (d/1000000)+ "mil";
             });
-    
-
-    chart.selectAll("rect")
-      .data(data)
-      .enter().append("svg:rect")
-      .attr("id", function(d){
-          return ("rect"+(idCount++).toString());
-      })
-      .attr("x", function(d) { return x(d.date); })
-      .attr("y", function(d) {return y(max(d.open, d.close));})		  
-      .attr("height", function(d) { return y(min(d.open, d.close))-y(max(d.open, d.close));})
-      .attr("width", function(d) { return 0.5 * (width - 2*margin)/data.length; })
-      .attr("fill",function(d) { return d.open > d.close ? "red" : "green" ;})
-      .on("mouseover", function(d){
-        d3.select(this)
-          .style("opacity", 0.5);
-        d3.select(("#" + this.id.replace("rect", "stem")))
-          .style("opacity", 0.2);
-        div.transition()
-          .duration(200)
-          .style("opacity", 0.9);
-        div.html("date:" + dateFormat(d.date) + "<br/>"
-                + "open:" + Math.round(d.open*100)/100 + "<br/>"
-                + "close:" + Math.round(d.close*100)/100 + "<br/>"
-                + "high:" + Math.round(d.high*100)/100 + "<br/>"
-                + "low:" + Math.round(d.low*100)/100 + "<br/>"
-                + "volume:" + d.volume.toString())
-          .style("left", (d3.event.pageX)+ "px")
-          .style("top", (d3.event.pageY) + "px");
-      })
-      .on("mouseout", function(){
-       
-        d3.select(("#"+ this.id.replace("rect", "stem")))
-          .style("opacity", 1);
-        d3.select(this)
-          .style("opacity", 1);
-        
-        div.style("opacity", 0);
-      });
       
+     
+      //volumes
       chart.selectAll("line.stem")
         .data(data)
         .enter().append("svg:line")
         .attr("class", "volumeStem")
         .attr("x1", function(d){
-          return x(d.date)+ 0.25 * (width -2 * margin)/data.length;
+         return x(d.date) ;//+ 0.25 * (width - 2 * margin)/ data.length;
         })
         .attr("x2", function(d){
-          return x(d.date)+ 0.25 * (width -2 * margin)/data.length;
+        return x(d.date) ;//+ 0.25 * (width - 2 * margin)/ data.length;
         })
         .attr("y1", function(d){
           return volumeY(d.volume);
@@ -192,8 +174,7 @@
 
 
 
-      idCount = 0;
-
+      //lineGraph
       chart.selectAll("line.stem")
         .data(data)
         .enter().append("svg:line")
@@ -202,25 +183,33 @@
         })
         .attr("class", "stem")
         .attr("x1", function(d) { 
-          return x(d.date) + 0.25 * (width - 2 * margin)/ data.length;
+          if(xIndex+1==data.length)
+            xIndex=1;
+          else
+            return x(data[xIndex++].date) ;//+ 0.25 * (width - 2 * margin)/ data.length;
         })
         .attr("x2", function(d) { 
-          return x(d.date) + 0.25 * (width - 2 * margin)/ data.length;
+          if(xIndex!=data.length)
+            return x(data[xIndex++].date) ;//+ 0.25 * (width - 2 * margin)/ data.length;
         })
-        .attr("y1", function(d) { 
-          return y(d.high);
+        .attr("y1", function(d) {
+          if(yIndex+1==data.length)
+            yIndex=1;
+          else 
+            return y(data[yIndex++].close);
         })
         .attr("y2", function(d) {
-         return y(d.low); 
+           if(yIndex!=data.length)
+            return y(data[yIndex++].close); 
         })
         .attr("stroke", function(d){ 
-          return d.open > d.close ? "red" : "green"; 
+          return "green"; 
         })
         .on("mouseover", function(d){
           d3.select(this)
             .style("opacity", 0.5);
          
-          d3.select("#" + this.id.replace("stem", "rect"))
+        d3.select("#" + this.id.replace("stem", "rect"))
             .style("opacity", 0.5);
 
           div.transition()
@@ -245,7 +234,50 @@
           div.style("opacity", 0);
         });
 
+        xIndex = 0;
+        yIndex = 1;
+     
+      idCount = 0;
+      //50 day moving average
+      chart.selectAll("line.fiftyDayStem")
+        .data(newData)
+        .enter().append("svg:line")
+        .attr("id", function(d){
+          return ("fiftyDayStem" + ((idCount++).toString()));
+        })
+        .attr("class", "fiftyDayStem")
+        .attr("x1", function(d) { 
+          if(xIndex+1==data.length)
+            xIndex=1;
+          else
+            return x(data[xIndex++].date) ;//+ 0.25 * (width - 2 * margin)/ data.length;
+        })
+        .attr("x2", function(d) { 
+          if(xIndex!=data.length)
+            return x(data[xIndex++].date) ;//+ 0.25 * (width - 2 * margin)/ data.length;
+        })
+        .attr("y1", function(d) {
+          return y(d);
+            
+        })
+        .attr("y2", function(d) {
+          if(yIndex!=data.length)
+            return y(newData[yIndex++]); 
+        })
+        .attr("stroke", function(d){ 
+          return "orange"; 
+        })
+        .on("mouseout", function(){
+          d3.select(this)
+            .style("opacity", 1);
 
+          d3.select("#" + this.id.replace("stem", "rect"))
+            .style("opacity", 1);
+
+          div.style("opacity", 0);
+        });
+
+      //crossHairs
       chart.append("svg:line")
         .attr("id", "crossHairX")
         .attr("x1", margin)

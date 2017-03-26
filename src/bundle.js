@@ -93555,8 +93555,11 @@ var yahooFinance = require('yahoo-finance');
      function(err, result){
        if(err)
          alert(err);
-       else
-         buildChart(result);
+       else if(document.getElementById("graphSelection").value=="Candlestick")
+         buildCandlestick(result);
+
+       else if (document.getElementById("graphSelection").value=="LineGraph")
+          buildLineGraph(result);
      }
     );
 
