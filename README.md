@@ -4,8 +4,8 @@ This program generates candlestick and line charts highlighting
 the behavior of the stockmarket over periods of time.
 
 These charts highlight the tendencies and patterns exhibited by the 
-stock market that many saavy investors lookout for.
-
+stock market that many saavy investors look for. Example patterns include
+cup and handle, evening star, doji, and hammer patterns.
 
 To Run:
 	run chrome with:
